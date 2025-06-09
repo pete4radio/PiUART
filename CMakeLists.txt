@@ -32,17 +32,15 @@ project(hello_serial C CXX ASM)
 pico_sdk_init()
 
 add_executable(hello_serial
-        hello_serial.c
+        hello_serial.c src/gps.c src/uart.c
         )
 
 # pull in common dependencies
-target_link_libraries(hello_serial pico_stdlib)
+target_include_directories(${PROJECT} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(${PROJECT} pico_stdlib hardware_uart)
 
 # create map/bin/hex/uf2 file etc.
-pico_add_extra_outputs(hello_serial)
-
-# add url via pico_set_program_url
-#example_auto_set_url(hello_serial)
+pico_add_extra_outputs(${PROJECT})
 
 # open serial port
 #pico_enable_stdio_uart(${PROJECT} 1)

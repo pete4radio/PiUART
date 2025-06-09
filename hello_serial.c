@@ -20,6 +20,11 @@ char buffer_GPS[BUFLEN] = {0}; // Define the buffer for GPS data
     #endif
 #endif
 
+//Check the pin is compatible with the platform
+#if UART_RX_PIN >= NUM_BANK0_GPIOS
+#error "Recompile specifying the RP2350B platform SAMWISE"
+#endif
+
 int main() {
     stdio_init_all();
     sleep_ms(5000); // Wait for the serial port to be ready

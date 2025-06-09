@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
+#include <pico/binary_info.h>
 
 #include "hardware/uart.h"
 #include "hardware/irq.h"
@@ -24,6 +25,13 @@ char buffer_GPS[BUFLEN] = {0}; // Define the buffer for GPS data
 #if UART_RX_PIN >= NUM_BANK0_GPIOS
 #error "Recompile specifying the RP2350B platform SAMWISE"
 #endif
+
+// Set binary information for 'picotool info -a' (see https://github.com/raspberrypi/picotool#readme)
+bi_decl(bi_program_description("Let's test a UART in loopback mode with GPS data parsing."));
+bi_decl(bi_program_name("PiUART - GPS and UART Loopback Example"));
+bi_decl(bi_program_url("https://github.com/pete4radio/PiUART"));
+bi_decl(bi_program_version_string("Build date and time: " __DATE__ " " __TIME__));
+bi_decl(bi_2pins_with_func(UART_RX_PIN, UART_TX_PIN, GPIO_FUNC_UART));
 
 int main() {
     stdio_init_all();
@@ -86,9 +94,11 @@ int main() {
                     sprintf(buffer_GPS, "GPS No Fix\n");
                 }
 //  If we're in loopback, this will repeat the cycle.
-                if (uart_is_writable(UART_ID)) {
+                if (UART_ID != NULL && uart_is_writable(UART_ID)) {
                     uart_puts(UART_ID, "\nHello, uart interrupts\n"); 
-                    } else  { printf("Could not write to UART for GPS loopback.\n"); }
+                    } else {
+                        printf("Could not write to UART for GPS loopback.\n");
+                    }
             } else {
                 sprintf(buffer_GPS, "GPS\n");
             }

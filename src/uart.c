@@ -14,18 +14,20 @@ void on_uart_rx() {
         if (ch == '\n' || ch == '\r') {
             if (chars_rxed < BUFLEN) {
                 buffer_UART[chars_rxed] = '\0'; // null terminate the string
+                chars_rxed = 0; // reset for the next line
+                return; // exit the handler
+            } else {
+        
+        //  Not a CR or EOL, buffer full, so if the buffer still has the last string, drop new letters
+                if (buffer_UART[0] != '\0') {
+                    buffer_UART[BUFLEN] = '\0'; // null terminate the string
+                    chars_rxed = 0; // reset for the next line
+                return;
+                }
             }
-            chars_rxed = 0; // reset for the next line
-            return; // exit the handler
-        //  if the buffer still has the last string, drop the new
-        } else if (buffer_UART[0] != '\0') {
-            return;
-        }
-        // put it into buffer_UART
+        // We have a letter, buffer's not full, not a CR or EOL so put it into buffer_UART
         if (chars_rxed < BUFLEN - 1) { // leave space for null terminator
             buffer_UART[chars_rxed] = ch;
-            chars_rxed++;
-            buffer_UART[chars_rxed] = '\0'; // null terminate the string
             chars_rxed++;
         } 
     }

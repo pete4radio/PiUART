@@ -80,6 +80,7 @@ int main() {
                 } else {
                     sprintf(buffer_GPS, "GPS No Fix\n");
                 }
+// oops, blocking! uart_puts(UART_ID, "\nHello, uart interrupts\n");       //  If we're in loopback, this will repeat the cycle.
             } else {
                 sprintf(buffer_GPS, "GPS\n");
             }

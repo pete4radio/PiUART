@@ -86,7 +86,8 @@ int main() {
                 printf("UART: %s\n", buffer_UART);
                 //  Decode the GPS data from the UART buffer
                 do_gps(buffer_UART, gps_data);
-                buffer_UART[0] = '\0'; // Clear the UART buffer after processing to accept another GPS sentence
+                chars_rxed = 0; // Clear the UART buffer after processing to accept another GPS sentence
+                buffer_UART[0] = '\0'; // Reset the UART buffer for the next read
                 //  Print the GPS data
                 if (gps_data->has_fix) {
                     sprintf(buffer_GPS, "GPS Fix: %d, Lat: %.6f %c, Lon: %.6f %c, Alt: %.2f m, Speed: %.2f knots\n",

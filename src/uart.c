@@ -1,27 +1,26 @@
 #include "pico/stdlib.h"
+#include <stdio.h>
 #include "hardware/uart.h"
 #include "hardware/irq.h"
 #include "uart.h"
 #include "main_gps_uart_shared_buffer.h"
 
-static int chars_rxed = 0;
 
 // RX interrupt handler
 void on_uart_rx() {
+    extern int chars_rxed;
     while (uart_is_readable(UART_ID)) {
         uint8_t ch = uart_getc(UART_ID);
         // If we have received a newline character, stop reading, terminate and return
         if (ch == '\n' || ch == '\r') {
             if (chars_rxed < BUFLEN) {
                 buffer_UART[chars_rxed] = '\0'; // null terminate the string
-                chars_rxed = 0; // reset for the next line
                 return; // exit the handler
             } else {
         
         //  Not a CR or EOL, buffer full, so if the buffer still has the last string, drop new letters
-                if (buffer_UART[0] != '\0') {
-                    buffer_UART[BUFLEN] = '\0'; // null terminate the string
-                    chars_rxed = 0; // reset for the next line
+                if (buffer_UART[0] == '\0') {
+                    buffer_UART[BUFLEN - 1] = '\0'; // null terminate the string
                 return;
                 }
             }
@@ -29,7 +28,8 @@ void on_uart_rx() {
         if (chars_rxed < BUFLEN - 1) { // leave space for null terminator
             buffer_UART[chars_rxed] = ch;
             chars_rxed++;
-        } 
+            }
+        }
     }
 }
 
@@ -37,7 +37,7 @@ uint8_t init_uart() {
     // Initialize the UART, and set up the pins
     
     // Set up our UART with a basic baud rate.
-    uart_init(UART_ID, 2400);
+    uart_init(UART_ID, BAUD_RATE);
 
     // Set the TX and RX pins by using the function select on the GPIO
     // Set datasheet for more information on function select

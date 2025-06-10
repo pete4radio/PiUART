@@ -73,12 +73,14 @@ int main() {
             }
         }
 
+
 // Time to GPS?
         if (absolute_time_diff_us(previous_time_GPS, get_absolute_time()) >= interval_GPS) {
             // Save the last time you blinked checked GPS
             previous_time_GPS = get_absolute_time();
             //  Is there a line for us to decode?
             if (buffer_UART[0] != '\0'  && (gps_data != NULL)) {
+                printf("UART: %s\n", buffer_UART);
                 //  Decode the GPS data from the UART buffer
                 do_gps(buffer_UART, gps_data);
                 buffer_UART[0] = '\0'; // Clear the UART buffer after processing to accept another GPS sentence
@@ -102,9 +104,8 @@ int main() {
             } else {
                 sprintf(buffer_GPS, "GPS\n");
             }
+        printf("%s\n", buffer_GPS);
         }
-
-        printf(".");
-        sleep_ms(100);
+        sleep_ms(10);
     }
 }

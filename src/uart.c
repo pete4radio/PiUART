@@ -9,27 +9,25 @@
 // RX interrupt handler
 void on_uart_rx() {
     extern int chars_rxed;
+    extern char
     while (uart_is_readable(UART_ID)) {
         uint8_t ch = uart_getc(UART_ID);
-        // If we have received a newline character, stop reading, terminate and return
+
+        // If buffer is full (or CR LF has been stored), drop new characters
+        if (chars_rxed > BUFLEN - 1) {
+                buffer_UART[BUFLEN - 1] = '\0'; // Null-terminate at the end
+                return; 
+            }
+
+        // If newline, terminate string and exit handler
         if (ch == '\n' || ch == '\r') {
-            if (chars_rxed < BUFLEN) {
-                buffer_UART[chars_rxed] = '\0'; // null terminate the string
-                return; // exit the handler
-            } else {
-        
-        //  Not a CR or EOL, buffer full, so if the buffer still has the last string, drop new letters
-                if (buffer_UART[0] == '\0') {
-                    buffer_UART[BUFLEN - 1] = '\0'; // null terminate the string
-                return;
-                }
-            }
-        // We have a letter, buffer's not full, not a CR or EOL so put it into buffer_UART
-        if (chars_rxed < BUFLEN - 1) { // leave space for null terminator
-            buffer_UART[chars_rxed] = ch;
-            chars_rxed++;
-            }
+            buffer_UART[chars_rxed] = '\0'; // Null-terminate at current position
+            chars_rxed = BUFLEN; // next characters are tossed until progrm processes this sentence
+            return;
         }
+
+        // Otherwise, store character and increment counter
+        buffer_UART[chars_rxed++] = ch;
     }
 }
 

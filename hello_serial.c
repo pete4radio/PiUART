@@ -37,6 +37,7 @@ bi_decl(bi_2pins_with_func(UART_RX_PIN, UART_TX_PIN, GPIO_FUNC_UART));
 
 int main() {
     extern int chars_rxed;
+    extern
     stdio_init_all();
     sleep_ms(5000); // Wait for the serial port to be ready
 
@@ -68,7 +69,7 @@ int main() {
             sprintf(buffer_UART, "");
             if (init_uart() == PICO_OK) {
                 //  If we got a complete line, print it
-                if (buffer_UART[0] != '\0') {
+                if (chars_rxed == BUFLEN) {   // signals <CR> or <LF> has been received
                     sprintf("UART: %s", buffer_UART);
                 }
             } else {
@@ -82,7 +83,7 @@ int main() {
             // Save the last time you blinked checked GPS
             previous_time_GPS = get_absolute_time();
             //  Is there a line for us to decode?
-            if (buffer_UART[0] != '\0'  && (gps_data != NULL)) {
+            if ((chars_rxed == BUFLEN)  && (gps_data != NULL)) {
                 printf("UART: %s\n", buffer_UART);
                 //  Decode the GPS data from the UART buffer
                 do_gps(buffer_UART, gps_data);

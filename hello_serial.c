@@ -37,14 +37,14 @@ bi_decl(bi_2pins_with_func(UART_RX_PIN, UART_TX_PIN, GPIO_FUNC_UART));
 
 int main() {
     extern int chars_rxed;
-    extern
+    extern char buffer_UART[BUFLEN];
     stdio_init_all();
     sleep_ms(5000); // Wait for the serial port to be ready
 
 //  UART
     absolute_time_t previous_time_UART = get_absolute_time();     // ms
     uint32_t interval_UART = 500000;
-    char buffer_UART[BUFLEN];
+    //char buffer_UART[BUFLEN];
     buffer_UART[0] = 0x00; //  Initialize the buffer to empty
 
 // GPS

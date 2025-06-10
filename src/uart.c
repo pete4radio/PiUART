@@ -9,7 +9,8 @@
 // RX interrupt handler
 void on_uart_rx() {
     extern int chars_rxed;
-    extern char
+    extern char buffer_UART[BUFLEN];
+    // This function is called when the UART receives data
     while (uart_is_readable(UART_ID)) {
         uint8_t ch = uart_getc(UART_ID);
 

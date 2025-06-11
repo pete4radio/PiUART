@@ -17,6 +17,7 @@ char buffer_DEBUG[BUFLEN * 10] = {0}; // Buffer for debug output
 int chars_rxed = 0; // Global variable to track the number of characters received
 int lfcr_rxed = 0; // Global variable to track how many LF or CR has been received
 int write_here = 0; // Global variable to track the position in the debug buffer
+int storing = 0; // Global variable to track if we are currently storing data
 
 //Check the pin is compatible with the platform
 #if UART_RX_PIN >= NUM_BANK0_GPIOS
@@ -35,6 +36,9 @@ int main() {
     extern char buffer_UART[BUFLEN];
     extern char buffer_DEBUG[BUFLEN * 10]; // Buffer for debug output
     extern int write_here; // Global variable to track the position in the debug buffer
+    //  storing has three states:  
+    //  0 = not storing because no $ yet, 1 = storing in progress, 2 = waiting for  program to ACK
+    extern int storing; // Add this as a global or static variable, initialized to 0
     extern int lfcr_rxed; // Global variable to track how many LF or CR has been received
     stdio_init_all();
     sleep_ms(5000); // Wait for the serial port to be ready
@@ -71,7 +75,7 @@ int main() {
             sprintf(buffer_UART, "");
             if (init_uart() == PICO_OK) {
                 //  If we got a complete line, print it
-                if (chars_rxed == BUFLEN) {   // signals <CR> or <LF> has been received
+                if (storing == 2) {   // signals <CR> or <LF> has been received
                     printf("UART Complete: %s", buffer_UART);
                     printf("UART: %d lfcr_rxed;  %d characters received\n", lfcr_rxed, chars_rxed);
                     lfcr_rxed = 0; // Reset the LF/CR counter after processing a complete line
@@ -87,12 +91,12 @@ int main() {
             // Save the last time you blinked checked GPS
             previous_time_GPS = get_absolute_time();
             //  Is there a line for us to decode?
-            if ((chars_rxed == BUFLEN)  && (gps_data != NULL)) {
-                printf("UART: %s\n", buffer_UART + 1);
+            if ((storing == 2)  && (gps_data != NULL)) {
+                printf("UART: %s\n", buffer_UART);
                 //  Decode the GPS data from the UART buffer
                 do_gps(buffer_UART, gps_data);
                 chars_rxed = 0; // Clear the UART buffer after processing to accept another GPS sentence
-                buffer_UART[0] = '\0'; // Reset the UART buffer for the next read
+                storing = 0; // Set storing to 0 to indicate we are ready to receive a new sentence
                 //  Print the GPS data
                 if (gps_data->has_fix) {
                     sprintf(buffer_GPS, "GPS Fix: %d, Lat: %.6f %c, Lon: %.6f %c, Alt: %.2f m, Speed: %.2f knots\n",

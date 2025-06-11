@@ -11,9 +11,11 @@ static uint8_t already_initialized = 0; // Flag to check if UART is already init
 void on_uart_rx() {
     extern int chars_rxed;
     extern char buffer_UART[BUFLEN];
-    extern int lfcr_rxed; // Global variable to track how many LF or CR has been received
-    extern int write_here;
-    extern char buffer_DEBUG[BUFLEN*10]; // Buffer for debug output
+    extern int lfcr_rxed;
+    //  storing has three states:  
+    //  0 = not storing because no $ yet, 1 = storing, 2 = waiting for  program to ACK
+    extern int storing; // Add this as a global or static variable, initialized to 0
+
     // This function is called when the UART receives data
     while (uart_is_readable(UART_ID)) {
         uint8_t ch = uart_getc(UART_ID);
@@ -21,23 +23,39 @@ void on_uart_rx() {
         if (write_here >= BUFLEN * 10) {
             write_here = 0; // Reset the debug buffer index if it exceeds the size
         }
-        // Check if the character is a valid ASCII character
 
-        // If buffer is full (or CR LF has been stored), drop new characters
-        if (chars_rxed > BUFLEN - 1) {
-                buffer_UART[BUFLEN - 1] = '\0'; // Null-terminate at the end
-                return; 
+        if (ch == '\0') {
+            continue; // Ignore null characters
+        }
+
+        // Start storing only when '$' is seen
+        if (storing == 1) {
+            if (ch == '$') {
+                storing = 1;
+                chars_rxed = 0;
+                buffer_UART[chars_rxed++] = '$';
+                lfcr_rxed = 0; // Reset LF/CR counter
             }
+            continue;
+        }
 
-        // If newline, terminate string and exit handler
-        if (ch == '\n' || ch == '\r') {
-            buffer_UART[chars_rxed] = '\0'; // Null-terminate at current position
-            chars_rxed = BUFLEN; // next characters are tossed until progrm processes this sentence
-            lfcr_rxed++; // Increment the LF/CR counter
+        // If buffer is full, null-terminate and stop storing
+        if ((chars_rxed > BUFLEN - 2) && (storing == 1)) {
+            buffer_UART[BUFLEN - 1] = '\0';
+            storing = 0;   // This discards overruns
             return;
         }
+
+        // If newline, terminate string, stop storing, and exit handler
+        if (ch == '\n' || ch == '\r') {
+            buffer_UART[chars_rxed] = '\0';
+            storing = 2; // Set storing to 2 to indicate waiting for ACK
+            lfcr_rxed++;
+            return;
+        }
+
         // Otherwise, store character and increment counter
-        if (ch) { buffer_UART[chars_rxed++] = ch; }
+        buffer_UART[chars_rxed++] = ch;
     }
 }
 

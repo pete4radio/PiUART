@@ -12,9 +12,11 @@
 
 char buffer_UART[BUFLEN] = {0}; // Define the buffer
 char buffer_GPS[BUFLEN] = {0}; // Define the buffer for GPS data
+char buffer_DEBUG[BUFLEN * 10] = {0}; // Buffer for debug output
 
 int chars_rxed = 0; // Global variable to track the number of characters received
 int lfcr_rxed = 0; // Global variable to track how many LF or CR has been received
+int write_here = 0; // Global variable to track the position in the debug buffer
 
 //Check the pin is compatible with the platform
 #if UART_RX_PIN >= NUM_BANK0_GPIOS
@@ -31,6 +33,8 @@ bi_decl(bi_2pins_with_func(UART_RX_PIN, UART_TX_PIN, GPIO_FUNC_UART));
 int main() {
     extern int chars_rxed;
     extern char buffer_UART[BUFLEN];
+    extern char buffer_DEBUG[BUFLEN * 10]; // Buffer for debug output
+    extern int write_here; // Global variable to track the position in the debug buffer
     extern int lfcr_rxed; // Global variable to track how many LF or CR has been received
     stdio_init_all();
     sleep_ms(5000); // Wait for the serial port to be ready

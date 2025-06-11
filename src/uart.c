@@ -5,15 +5,23 @@
 #include "uart.h"
 #include "main_gps_uart_shared_buffer.h"
 
+static uint8_t already_initialized = 0; // Flag to check if UART is already initialized
 
 // RX interrupt handler
 void on_uart_rx() {
     extern int chars_rxed;
     extern char buffer_UART[BUFLEN];
     extern int lfcr_rxed; // Global variable to track how many LF or CR has been received
+    extern int write_here;
+    extern char buffer_DEBUG[BUFLEN*10]; // Buffer for debug output
     // This function is called when the UART receives data
     while (uart_is_readable(UART_ID)) {
         uint8_t ch = uart_getc(UART_ID);
+        buffer_DEBUG[write_here++] = ch; // Store the character in the debug buffer
+        if (write_here >= BUFLEN * 10) {
+            write_here = 0; // Reset the debug buffer index if it exceeds the size
+        }
+        // Check if the character is a valid ASCII character
 
         // If buffer is full (or CR LF has been stored), drop new characters
         if (chars_rxed > BUFLEN - 1) {
@@ -35,6 +43,10 @@ void on_uart_rx() {
 
 uint8_t init_uart() {
     // Initialize the UART, and set up the pins
+    if (already_initialized) {
+        return PICO_OK; // UART already initialized, no need to reinitialize
+    }
+    already_initialized = 1; // Set the flag to indicate UART is initialized
     
     // Set up our UART with a basic baud rate.
     uart_init(UART_ID, BAUD_RATE);

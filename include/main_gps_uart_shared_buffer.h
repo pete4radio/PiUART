@@ -9,5 +9,7 @@
 
 extern char buffer_UART[BUFLEN];
 extern char buffer_GPS[BUFLEN];
+extern char buffer_DEBUG[BUFLEN * 10]; // Buffer for debug output
+extern int write_here; // Global variable to track the position in the debug buffer
 extern int chars_rxed; // Global variable to track how many characters have been received
 extern int lfcr_rxed; // Global variable to track how many LF or CR has been received   

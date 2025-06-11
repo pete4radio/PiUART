@@ -18,6 +18,7 @@ int chars_rxed = 0; // Global variable to track the number of characters receive
 int lfcr_rxed = 0; // Global variable to track how many LF or CR has been received
 int write_here = 0; // Global variable to track the position in the debug buffer
 int storing = 0; // Global variable to track if we are currently storing data
+int zeros_rxed = 0; // Global variable to track how many null characters have been received
 
 //Check the pin is compatible with the platform
 #if UART_RX_PIN >= NUM_BANK0_GPIOS
@@ -40,6 +41,7 @@ int main() {
     //  0 = not storing because no $ yet, 1 = storing in progress, 2 = waiting for  program to ACK
     extern int storing; // Add this as a global or static variable, initialized to 0
     extern int lfcr_rxed; // Global variable to track how many LF or CR has been received
+    extern int zeros_rxed;
     stdio_init_all();
     sleep_ms(5000); // Wait for the serial port to be ready
 
@@ -65,6 +67,7 @@ int main() {
     // Start at the beginning of the buffer
     chars_rxed = 0;
     lfcr_rxed = 0; // Initialize the LF/CR counter
+    zeros_rxed = 0;
 
     while (true) {
 // Time to UART?
@@ -76,9 +79,11 @@ int main() {
             if (init_uart() == PICO_OK) {
                 //  If we got a complete line, print it
                 if (storing == 2) {   // signals <CR> or <LF> has been received
-                    printf("UART Complete: %s", buffer_UART);
-                    printf("UART: %d lfcr_rxed;  %d characters received\n", lfcr_rxed, chars_rxed);
+                    printf("UART Complete: %s", buffer_UART + 1);
+                    printf("UART: %d lfcr_rxed;  %d characters received; %d zeros received.\n", 
+                        lfcr_rxed, chars_rxed, zeros_rxed);
                     lfcr_rxed = 0; // Reset the LF/CR counter after processing a complete line
+                    zeros_rxed = 0; // Reset the zeros counter after processing a complete line
                 }
             } else {
                 printf("UART: not found\n");

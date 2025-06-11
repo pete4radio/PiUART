@@ -12,6 +12,7 @@ void on_uart_rx() {
     extern int chars_rxed;
     extern char buffer_UART[BUFLEN];
     extern int lfcr_rxed;
+    extern int zeros_rxed;
     //  storing has three states:  
     //  0 = not storing because no $ yet, 1 = storing, 2 = waiting for  program to ACK
     extern int storing; // Add this as a global or static variable, initialized to 0
@@ -25,37 +26,38 @@ void on_uart_rx() {
         }
 
         if (ch == '\0') {
-            continue; // Ignore null characters
+            zeros_rxed++;
+            return; // Ignore null characters
         }
 
         // Start storing only when '$' is seen
-        if (storing == 1) {
+        if (storing == 0) {
             if (ch == '$') {
                 storing = 1;
                 chars_rxed = 0;
                 buffer_UART[chars_rxed++] = '$';
-                lfcr_rxed = 0; // Reset LF/CR counter
+                lfcr_rxed = 0; // Reset LF/CR counter:  It says how old the current sentence is.
             }
-            continue;
+            return;
         }
 
         // If buffer is full, null-terminate and stop storing
         if ((chars_rxed > BUFLEN - 2) && (storing == 1)) {
             buffer_UART[BUFLEN - 1] = '\0';
-            storing = 0;   // This discards overruns
+            storing = 0;   // This discards overruns, which may be corrupt anyway
             return;
         }
 
         // If newline, terminate string, stop storing, and exit handler
         if (ch == '\n' || ch == '\r') {
-            buffer_UART[chars_rxed] = '\0';
+            buffer_UART[chars_rxed] = '\0';  // no increment, if another delimiter comes it stays here.
             storing = 2; // Set storing to 2 to indicate waiting for ACK
             lfcr_rxed++;
             return;
         }
 
         // Otherwise, store character and increment counter
-        buffer_UART[chars_rxed++] = ch;
+        if (storing == 1) {buffer_UART[chars_rxed++] = ch;}
     }
 }
 

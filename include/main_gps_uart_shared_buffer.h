@@ -17,3 +17,4 @@ extern int lfcr_rxed; // Global variable to track how many LF or CR has been rec
     //  storing has three states:  
     //  0 = not storing because no $ yet, 1 = storing in progress, 2 = waiting for  program to ACK
 extern int storing; // Add this as a global or static variable, initialized to 0
+extern int zeros_rxed; // Global variable to track how many zeros have been received

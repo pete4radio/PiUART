@@ -9,3 +9,5 @@
 
 extern char buffer_UART[BUFLEN];
 extern char buffer_GPS[BUFLEN];
+extern int chars_rxed; // Global variable to track how many characters have been received
+extern int lfcr_rxed; // Global variable to track how many LF or CR has been received   

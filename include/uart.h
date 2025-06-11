@@ -7,8 +7,10 @@
 // For the ADCS board, the GPS is GPIO 2 and 3, and are UART0 and function 11
 // For the Motor board, the ADCS is connected to GPIO 40 and 41, and are UART1 and function 2
 
-#define UART_TX_PIN 40
-#define UART_RX_PIN 41
+// When changing these, confirm which uart is being used.  Some pins need
+// the GPIO_FUNC_UART_AUX function code.
+#define UART_TX_PIN 4
+#define UART_RX_PIN 5
 
 // Function prototypes
 void on_uart_rx(void);  // I think this should not be here

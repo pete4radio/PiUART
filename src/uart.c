@@ -10,6 +10,7 @@
 void on_uart_rx() {
     extern int chars_rxed;
     extern char buffer_UART[BUFLEN];
+    extern int lfcr_rxed; // Global variable to track how many LF or CR has been received
     // This function is called when the UART receives data
     while (uart_is_readable(UART_ID)) {
         uint8_t ch = uart_getc(UART_ID);
@@ -24,11 +25,11 @@ void on_uart_rx() {
         if (ch == '\n' || ch == '\r') {
             buffer_UART[chars_rxed] = '\0'; // Null-terminate at current position
             chars_rxed = BUFLEN; // next characters are tossed until progrm processes this sentence
+            lfcr_rxed++; // Increment the LF/CR counter
             return;
         }
-
         // Otherwise, store character and increment counter
-        buffer_UART[chars_rxed++] = ch;
+        if (ch) { buffer_UART[chars_rxed++] = ch; }
     }
 }
 

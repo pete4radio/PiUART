@@ -55,7 +55,9 @@ static void parse_date(const char *s, gps_data_t *gps) {
 static void parse_gga(char **fields, gps_data_t *gps) {
     parse_time(fields[1], gps);
     gps->latitude = nmea_to_decimal(fields[2], fields[3][0]);
+    gps->lat_dir = fields[3][0]; // 'N' or 'S'
     gps->longitude = nmea_to_decimal(fields[4], fields[5][0]);
+    gps->lon_dir = fields[5][0]; // 'E' or 'W'
     gps->fix_quality = parse_int(fields[6]);
     gps->satellites = parse_int(fields[7]);
     gps->hdop = parse_double(fields[8]);
@@ -159,13 +161,13 @@ uint8_t do_gps(const char nmea_sentence[BUFLEN], gps_data_t *gps) {
     // Identify sentence type
     if (strncmp(fields[0], "GPGGA", 3) == 0) {
         parse_gga(fields, gps);
-    } else if (strncmp(fields[0], "RMC", 3) == 0) {
+    } else if (strncmp(fields[0], "GNRMC", 3) == 0) {
         parse_rmc(fields, gps);
-    } else if (strncmp(fields[0], "GLL", 3) == 0) {
+    } else if (strncmp(fields[0], "GNGLL", 3) == 0) {
         parse_gll(fields, gps);
-    } else if (strncmp(fields[0], "GBGSA", 3) == 0) {
+    } else if (strncmp(fields[0], "GLGSA", 3) == 0) {
         parse_gsa(fields, gps);
-    } else if (strncmp(fields[0], "GSV", 3) == 0) {
+    } else if (strncmp(fields[0], "GPGSV", 3) == 0) {
         parse_gsv(fields, gps);
     } else {
         printf("gps.c: Not a supported sentence: %s.\n", fields[0]);

@@ -62,6 +62,10 @@ int main() {
     }
     //memset(&gps_data, 0, sizeof(gps_data));
 
+// Print current lat, long
+    absolute_time_t previous_time_DISPLAY = get_absolute_time();     // ms
+    uint32_t interval_DISPLAY = 10*1000*1000; // 10 second in microseconds
+
     printf("Hello, GPS and UART!\n");
     init_uart(); // Initialize the UART
     // Start at the beginning of the buffer
@@ -90,7 +94,6 @@ int main() {
             }
         }
 
-
 // Time to GPS?
         if (absolute_time_diff_us(previous_time_GPS, get_absolute_time()) >= interval_GPS) {
             // Save the last time you blinked checked GPS
@@ -107,7 +110,7 @@ int main() {
                 chars_rxed = 0; // Clear the UART buffer after processing to accept another GPS sentence
                 chars_rxed = 0; // Clear the UART buffer after processing to accept another GPS sentence
                 //  Print the GPS data
-                if (gps_data->has_fix) {
+                if (gps_data->has_fix) { // Always print GPS data for testing
                     sprintf(buffer_GPS, "GPS Fix: %d, Lat: %.6f %c, Lon: %.6f %c, Alt: %.2f m, Speed: %.2f knots\n",
                             gps_data->fix_quality,
                             gps_data->latitude, gps_data->lat_dir,
@@ -125,6 +128,20 @@ int main() {
                     }
             } 
 //        printf("%s\n", buffer_GPS);
+        }
+// Time to display GPS data?
+        if (absolute_time_diff_us(previous_time_DISPLAY, get_absolute_time()) >= interval_DISPLAY) {
+            previous_time_DISPLAY = get_absolute_time();
+            if (gps_data != NULL) {
+                if (gps_data->has_fix || 1) { // Always print GPS data for testing
+                    printf("\nGPS Fix: %d, Lat: %.6f %c, Lon: %.6f %c, Alt: %.2f m, Speed: %.2f knots\n",
+                            gps_data->fix_quality,
+                            gps_data->latitude, gps_data->lat_dir,
+                            gps_data->longitude, gps_data->lon_dir,
+                            gps_data->altitude_m,
+                            gps_data->speed_knots);
+                    }
+                }
         }
         sleep_ms(1);
     }

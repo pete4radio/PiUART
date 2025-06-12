@@ -47,13 +47,13 @@ int main() {
 
 //  UART
     absolute_time_t previous_time_UART = get_absolute_time();     // ms
-    uint32_t interval_UART = 50000;
+    uint32_t interval_UART = 10000;
     //char buffer_UART[BUFLEN];
     buffer_UART[0] = 0x00; //  Initialize the buffer to empty
 
 // GPS
     absolute_time_t previous_time_GPS = get_absolute_time();     // ms
-    uint32_t interval_GPS = 50000;
+    uint32_t interval_GPS = 10000;
     extern char buffer_GPS[BUFLEN];
     buffer_GPS[0] = 0x00; //  Initialize the buffer to empty
     gps_data_t *gps_data = malloc(sizeof(gps_data_t));
@@ -80,7 +80,7 @@ int main() {
                 //  If we got a complete line, print it
                 if (storing == 2) {   // signals <CR> or <LF> has been received
                     printf("UART Complete: %s\n", buffer_UART);
-                    printf("UART: %d lost sentences;  %d characters received; %d zeros received.\n", 
+                    printf("UART: %d lost sentences; current message has %d characters; %d zeros received.\n", 
                         lfcr_rxed, chars_rxed, zeros_rxed);
                     lfcr_rxed = 0; // Reset the LF/CR counter after processing a complete line
                     zeros_rxed = 0; // Reset the zeros counter after processing a complete line
@@ -96,6 +96,8 @@ int main() {
             // Save the last time you blinked checked GPS
             previous_time_GPS = get_absolute_time();
             //  Is there a line for us to decode?
+ //           sprintf(buffer_GPS, "GPS, storing = %d, chars_rxed = %d, lost = %d, , buffer = %s\n", 
+ //               storing, chars_rxed, lfcr_rxed, buffer_UART);
             if ((storing == 2)  && (gps_data != NULL)) {
                 //  Decode the GPS data from the UART buffer
                 if (do_gps(buffer_UART, gps_data) == PICO_ERROR_GENERIC) {
@@ -103,9 +105,7 @@ int main() {
                 }
                 storing = 0; // Reset storing to 0 to indicate we are ready to receive a new sentence
                 chars_rxed = 0; // Clear the UART buffer after processing to accept another GPS sentence
-                continue; // Skip further processing for this iteration
                 chars_rxed = 0; // Clear the UART buffer after processing to accept another GPS sentence
-                storing = 0; // Set storing to 0 to indicate we are ready to receive a new sentence
                 //  Print the GPS data
                 if (gps_data->has_fix) {
                     sprintf(buffer_GPS, "GPS Fix: %d, Lat: %.6f %c, Lon: %.6f %c, Alt: %.2f m, Speed: %.2f knots\n",
@@ -115,7 +115,7 @@ int main() {
                             gps_data->altitude_m,
                             gps_data->speed_knots);
                 } else {
-                    sprintf(buffer_GPS, "GPS No Fix\n");
+//                    sprintf(buffer_GPS, "GPS No Fix\n");
                 }
 //  If we're in loopback, this will repeat the cycle.
                 if (UART_ID != NULL && uart_is_writable(UART_ID)) {
@@ -123,11 +123,9 @@ int main() {
                     } else {
                         printf("Could not write to UART for GPS loopback.\n");
                     }
-            } else {
-                sprintf(buffer_GPS, "GPS");
-            }
-        printf("%d, %s\n", chars_rxed, buffer_GPS);
+            } 
+//        printf("%s\n", buffer_GPS);
         }
-        sleep_ms(10);
+        sleep_ms(1);
     }
 }

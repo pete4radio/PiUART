@@ -54,7 +54,7 @@ void on_uart_rx() {
         if (ch == '\n' || ch == '\r') {
             buffer_UART[chars_rxed] = '\0';  // no increment, if another delimiter comes it stays here.
             storing = 2; // Set storing to 2 to indicate waiting for ACK
-            lfcr_rxed++;
+            lfcr_rxed++;    //counts cr plus lf, so in most cases is double-counting the number of lost sentences
             return;
         }
 

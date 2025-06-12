@@ -13,6 +13,9 @@ void on_uart_rx() {
     extern char buffer_UART[BUFLEN];
     extern int lfcr_rxed;
     extern int zeros_rxed;
+    extern int write_here; // Global variable to track the position in the debug buffer
+    extern char buffer_DEBUG[BUFLEN * 10]; // Buffer for debug output
+
     //  storing has three states:  
     //  0 = not storing because no $ yet, 1 = storing, 2 = waiting for  program to ACK
     extern int storing; // Add this as a global or static variable, initialized to 0
@@ -20,9 +23,8 @@ void on_uart_rx() {
     // This function is called when the UART receives data
     while (uart_is_readable(UART_ID)) {
         uint8_t ch = uart_getc(UART_ID);
-        buffer_DEBUG[write_here++] = ch; // Store the character in the debug buffer
-        if (write_here >= BUFLEN * 10) {
-            write_here = 0; // Reset the debug buffer index if it exceeds the size
+        if (write_here < BUFLEN * 10) {
+            buffer_DEBUG[write_here++] = ch; // Store the character in the debug buffer
         }
 
         if (ch == '\0') {

@@ -134,8 +134,10 @@ uint8_t do_gps(const char nmea_sentence[BUFLEN], gps_data_t *gps) {
        }
     }  
     if (!nmea_sentence || !gps) return PICO_ERROR_GENERIC;
-    if (!validate_nmea_checksum(nmea_sentence)) return PICO_ERROR_GENERIC;
-
+    if (!validate_nmea_checksum(nmea_sentence)) {
+        printf("Invalid NMEA checksum: %s\n", nmea_sentence);
+        return PICO_ERROR_GENERIC;
+    }
     strncpy(gps->last_sentence, nmea_sentence, GPS_BUFFER_SIZE-1);
     gps->last_sentence[GPS_BUFFER_SIZE-1] = 0;
 
@@ -155,18 +157,18 @@ uint8_t do_gps(const char nmea_sentence[BUFLEN], gps_data_t *gps) {
     if (nfields < 1) return PICO_ERROR_GENERIC;
 
     // Identify sentence type
-    if (strncmp(fields[0], "GGA", 3) == 0) {
+    if (strncmp(fields[0], "GPGGA", 3) == 0) {
         parse_gga(fields, gps);
     } else if (strncmp(fields[0], "RMC", 3) == 0) {
         parse_rmc(fields, gps);
     } else if (strncmp(fields[0], "GLL", 3) == 0) {
         parse_gll(fields, gps);
-    } else if (strncmp(fields[0], "GSA", 3) == 0) {
+    } else if (strncmp(fields[0], "GBGSA", 3) == 0) {
         parse_gsa(fields, gps);
     } else if (strncmp(fields[0], "GSV", 3) == 0) {
         parse_gsv(fields, gps);
     } else {
-        // Not a supported sentence
+        printf("gps.c: Not a supported sentence: %s.\n", fields[0]);
         return PICO_ERROR_GENERIC;
     }
 

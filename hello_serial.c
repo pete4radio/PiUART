@@ -47,13 +47,13 @@ int main() {
 
 //  UART
     absolute_time_t previous_time_UART = get_absolute_time();     // ms
-    uint32_t interval_UART = 5000000;
+    uint32_t interval_UART = 50000;
     //char buffer_UART[BUFLEN];
     buffer_UART[0] = 0x00; //  Initialize the buffer to empty
 
 // GPS
     absolute_time_t previous_time_GPS = get_absolute_time();     // ms
-    uint32_t interval_GPS = 5000000;
+    uint32_t interval_GPS = 50000;
     extern char buffer_GPS[BUFLEN];
     buffer_GPS[0] = 0x00; //  Initialize the buffer to empty
     gps_data_t *gps_data = malloc(sizeof(gps_data_t));
@@ -69,6 +69,7 @@ int main() {
     lfcr_rxed = 0; // Initialize the LF/CR counter
     zeros_rxed = 0;
     storing = 0; // Initialize storing to 0 (not storing yet, need a $ to start storing)
+    write_here = 0; // Initialize the write position in the debug buffer
 
     while (true) {
 // Time to UART?
@@ -78,8 +79,8 @@ int main() {
             if (init_uart() == PICO_OK) {
                 //  If we got a complete line, print it
                 if (storing == 2) {   // signals <CR> or <LF> has been received
-                    printf("UART Complete: %s", buffer_UART + 1);
-                    printf("UART: %d lfcr_rxed;  %d characters received; %d zeros received.\n", 
+                    printf("UART Complete: %s\n", buffer_UART);
+                    printf("UART: %d lost sentences;  %d characters received; %d zeros received.\n", 
                         lfcr_rxed, chars_rxed, zeros_rxed);
                     lfcr_rxed = 0; // Reset the LF/CR counter after processing a complete line
                     zeros_rxed = 0; // Reset the zeros counter after processing a complete line
@@ -96,7 +97,6 @@ int main() {
             previous_time_GPS = get_absolute_time();
             //  Is there a line for us to decode?
             if ((storing == 2)  && (gps_data != NULL)) {
-                printf("UART: %s\n", buffer_UART);
                 //  Decode the GPS data from the UART buffer
                 if (do_gps(buffer_UART, gps_data) == PICO_ERROR_GENERIC) {
                     printf("GPS: Error parsing NMEA sentence: %s\n", buffer_UART);

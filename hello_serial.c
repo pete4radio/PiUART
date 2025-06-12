@@ -68,14 +68,13 @@ int main() {
     chars_rxed = 0;
     lfcr_rxed = 0; // Initialize the LF/CR counter
     zeros_rxed = 0;
+    storing = 0; // Initialize storing to 0 (not storing yet, need a $ to start storing)
 
     while (true) {
 // Time to UART?
         if (absolute_time_diff_us(previous_time_UART, get_absolute_time()) >= interval_UART) {
             // Save the last time you blinked checked UART loopback
             previous_time_UART = get_absolute_time();
-        //  First byte of buffer is zero until the interrupt routine provides a complete line
-            sprintf(buffer_UART, "");
             if (init_uart() == PICO_OK) {
                 //  If we got a complete line, print it
                 if (storing == 2) {   // signals <CR> or <LF> has been received
@@ -99,7 +98,12 @@ int main() {
             if ((storing == 2)  && (gps_data != NULL)) {
                 printf("UART: %s\n", buffer_UART);
                 //  Decode the GPS data from the UART buffer
-                do_gps(buffer_UART, gps_data);
+                if (do_gps(buffer_UART, gps_data) == PICO_ERROR_GENERIC) {
+                    printf("GPS: Error parsing NMEA sentence: %s\n", buffer_UART);
+                }
+                storing = 0; // Reset storing to 0 to indicate we are ready to receive a new sentence
+                chars_rxed = 0; // Clear the UART buffer after processing to accept another GPS sentence
+                continue; // Skip further processing for this iteration
                 chars_rxed = 0; // Clear the UART buffer after processing to accept another GPS sentence
                 storing = 0; // Set storing to 0 to indicate we are ready to receive a new sentence
                 //  Print the GPS data

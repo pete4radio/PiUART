@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define GPS_BUFFER_SIZE 128
+#define GPS_BUFFER_SIZE 160
 
 typedef struct {
     // Time and date

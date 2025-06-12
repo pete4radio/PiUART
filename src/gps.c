@@ -124,7 +124,15 @@ static bool validate_nmea_checksum(const char *sentence) {
 }
 
 // Main GPS sentence parser
-uint8_t do_gps(const char *nmea_sentence, gps_data_t *gps) {
+uint8_t do_gps(const char nmea_sentence[BUFLEN], gps_data_t *gps) {
+    // Check that the nmea_sentence starts with $, and is a length greater 
+    // than six characters and less than BUFLEN characters long
+    if (!nmea_sentence || nmea_sentence[0] != '$' || strlen(nmea_sentence) < 6 || strlen(nmea_sentence) >= BUFLEN) {
+       {
+        printf("Invalid NMEA sentence: %s\n", nmea_sentence);
+        return PICO_ERROR_GENERIC;  
+       }
+    }  
     if (!nmea_sentence || !gps) return PICO_ERROR_GENERIC;
     if (!validate_nmea_checksum(nmea_sentence)) return PICO_ERROR_GENERIC;
 
